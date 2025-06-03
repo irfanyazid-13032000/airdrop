@@ -2,166 +2,183 @@ import React, { useState } from 'react';
 
 const styles = {
   container: {
-    maxWidth: '600px',
+    maxWidth: '800px',
     margin: '40px auto',
     padding: '20px',
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    backgroundColor: '#f9f9f9',
+    borderRadius: '10px',
     fontFamily: 'Arial, sans-serif',
   },
+  section: {
+    marginBottom: '30px',
+  },
   heading: {
-    textAlign: 'center',
-    fontSize: '28px',
+    fontSize: '24px',
     fontWeight: 'bold',
-    marginBottom: '24px',
+    marginBottom: '20px',
+    color: '#333',
   },
-  listItem: {
-    border: '1px solid #ddd',
-    borderRadius: '6px',
-    padding: '12px',
+  taskItem: {
+    backgroundColor: '#fff',
+    borderRadius: '8px',
+    padding: '15px',
     marginBottom: '12px',
-    transition: 'box-shadow 0.3s',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
-  listItemHover: {
-    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+  taskText: {
+    fontSize: '16px',
+    color: '#333',
   },
-  subHeading: {
-    fontSize: '20px',
-    fontWeight: '600',
-    marginBottom: '16px',
+  checkbox: {
+    width: '18px',
+    height: '18px',
   },
   formGroup: {
-    marginBottom: '14px',
+    marginBottom: '16px',
   },
   label: {
     display: 'block',
     marginBottom: '6px',
     fontWeight: '600',
+    color: '#444',
   },
   input: {
     width: '100%',
-    padding: '8px 10px',
-    borderRadius: '4px',
+    padding: '10px',
+    borderRadius: '6px',
     border: '1px solid #ccc',
     fontSize: '16px',
-    boxSizing: 'border-box',
   },
   button: {
     width: '100%',
-    padding: '10px',
-    backgroundColor: '#007bff',
+    padding: '12px',
+    backgroundColor: '#28a745',
     color: '#fff',
     border: 'none',
     borderRadius: '6px',
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: '16px',
     cursor: 'pointer',
-    transition: 'background-color 0.3s',
-  },
-  buttonHover: {
-    backgroundColor: '#0056b3',
   },
 };
 
 export default function Home() {
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   const [airdrops, setAirdrops] = useState([
-    { id: 1, name: 'Airdrop 1', claim_reward_at: '2025-06-05', started_at: '2025-06-01' },
-    { id: 2, name: 'Airdrop 2', claim_reward_at: '2025-06-10', started_at: '2025-06-02' },
+    {
+      id: 1,
+      name: 'Daily Task A',
+      type: 'daily',
+      started_at: '2025-06-01',
+      claim_reward_at: '2025-06-10',
+    },
+    {
+      id: 2,
+      name: 'Special Task B',
+      type: 'scheduled',
+      started_at: '2025-06-03',
+      claim_reward_at: '2025-06-03',
+    },
   ]);
-
+  const [checklist, setChecklist] = useState({});
   const [name, setName] = useState('');
   const [claimRewardAt, setClaimRewardAt] = useState('');
   const [startedAt, setStartedAt] = useState('');
-  const [hoveredId, setHoveredId] = useState(null);
-  const [buttonHover, setButtonHover] = useState(false);
 
-  function handleSubmit(e) {
+  const todayTasks = airdrops.filter(
+    (item) =>
+      item.type === 'daily' ||
+      item.claim_reward_at === today
+  );
+
+  const handleCheck = (id) => {
+    setChecklist((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     const newAirdrop = {
       id: airdrops.length + 1,
       name,
-      claim_reward_at: claimRewardAt,
+      type: 'daily',
       started_at: startedAt,
+      claim_reward_at: claimRewardAt,
     };
     setAirdrops([...airdrops, newAirdrop]);
-
     setName('');
     setClaimRewardAt('');
     setStartedAt('');
-  }
+  };
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.heading}>Airdrop List</h1>
+      <div style={styles.section}>
+        <h2 style={styles.heading}>📅 Task Hari Ini - {today}</h2>
+        {todayTasks.length === 0 ? (
+          <p>Tidak ada task untuk hari ini.</p>
+        ) : (
+          todayTasks.map((task) => (
+            <div key={task.id} style={styles.taskItem}>
+              <div>
+                <div style={styles.taskText}>{task.name}</div>
+                <small>
+                  Mulai: {task.started_at} | Klaim: {task.claim_reward_at}
+                </small>
+              </div>
+              <input
+                type="checkbox"
+                style={styles.checkbox}
+                checked={checklist[task.id] || false}
+                onChange={() => handleCheck(task.id)}
+              />
+            </div>
+          ))
+        )}
+      </div>
 
-      <ul style={{ paddingLeft: 0 }}>
-        {airdrops.map(({ id, name, claim_reward_at, started_at }) => (
-          <li
-            key={id}
-            style={{
-              ...styles.listItem,
-              ...(hoveredId === id ? styles.listItemHover : {}),
-              listStyle: 'none',
-            }}
-            onMouseEnter={() => setHoveredId(id)}
-            onMouseLeave={() => setHoveredId(null)}
-          >
-            <h2>{name}</h2>
-            <p><strong>Claim Reward Date:</strong> {claim_reward_at}</p>
-            <p><strong>Started At:</strong> {started_at}</p>
-          </li>
-        ))}
-      </ul>
-
-      <h2 style={styles.subHeading}>Add New Airdrop</h2>
-
-      <form onSubmit={handleSubmit}>
-        <div style={styles.formGroup}>
-          <label htmlFor="name" style={styles.label}>Name</label>
-          <input
-            id="name"
-            type="text"
-            style={styles.input}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label htmlFor="claimRewardAt" style={styles.label}>Claim Reward Date</label>
-          <input
-            id="claimRewardAt"
-            type="date"
-            style={styles.input}
-            value={claimRewardAt}
-            onChange={(e) => setClaimRewardAt(e.target.value)}
-            required
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label htmlFor="startedAt" style={styles.label}>Started At</label>
-          <input
-            id="startedAt"
-            type="date"
-            style={styles.input}
-            value={startedAt}
-            onChange={(e) => setStartedAt(e.target.value)}
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          style={buttonHover ? { ...styles.button, ...styles.buttonHover } : styles.button}
-          onMouseEnter={() => setButtonHover(true)}
-          onMouseLeave={() => setButtonHover(false)}
-        >
-          Add Airdrop
-        </button>
-      </form>
+      <div style={styles.section}>
+        <h2 style={styles.heading}>➕ Tambah Airdrop Baru</h2>
+        <form onSubmit={handleSubmit}>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Nama Airdrop</label>
+            <input
+              style={styles.input}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Tanggal Mulai</label>
+            <input
+              type="date"
+              style={styles.input}
+              value={startedAt}
+              onChange={(e) => setStartedAt(e.target.value)}
+              required
+            />
+          </div>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Tanggal Klaim Hadiah</label>
+            <input
+              type="date"
+              style={styles.input}
+              value={claimRewardAt}
+              onChange={(e) => setClaimRewardAt(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" style={styles.button}>
+            Simpan Airdrop
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
