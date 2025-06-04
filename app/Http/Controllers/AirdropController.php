@@ -9,6 +9,8 @@ use App\Models\TaskChecklist;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Redirect;
+
 
 class AirdropController extends Controller
 {
@@ -69,9 +71,8 @@ class AirdropController extends Controller
         }
     }
 
-   return Inertia::render('AirdropPage', [
-        'airdrops' => Airdrop::with('tasks.schedules')->get(),
-    ]);
+       return Redirect::back()->with('success', 'Airdrop berhasil disimpan!');
+
 }
 
 

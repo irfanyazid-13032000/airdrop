@@ -3,9 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AirdropController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
 
 Route::get('/', [AirdropController::class, 'index'])->name('airdrop.index');

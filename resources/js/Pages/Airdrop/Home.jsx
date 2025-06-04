@@ -122,41 +122,45 @@ export default function Home({ initialAirdrops = [] }) {
     return true;
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!validateForm()) return;
+ function handleSubmit(e) {
+  e.preventDefault();
+  if (!validateForm()) return;
 
-    const dataToSend = {
-      name,
-      claim_reward_at: claimRewardAt,
-      started_at: startedAt,
-      type,
-      schedules: type === 'daily' ? [] : schedules,
-    };
-
-      console.log('Data dikirim ke server:', dataToSend);
-
-
-    Inertia.post('/api/airdrop', dataToSend, {
-      onSuccess: (page) => {
-        alert('Airdrop berhasil disimpan!');
-        // Update state dengan data terbaru dari backend jika perlu
-        if (page.props.airdrops) {
-          setAirdrops(page.props.airdrops);
-        } else {
-          // Kalau backend tidak kirim ulang, reset form manual
-          setName('');
-          setClaimRewardAt('');
-          setStartedAt('');
-          setType('daily');
-          setSchedules([]);
-        }
+  const dataToSend = {
+    name,
+    claim_reward_at: claimRewardAt,
+    started_at: startedAt,
+    tasks: [
+      {
+        type,
+        description: '', // atau tambahkan form input jika perlu
+        dates: type === 'daily' ? [] : schedules,
       },
-      onError: (errors) => {
-        alert('Terjadi error saat menyimpan airdrop');
-      },
-    });
-  }
+    ],
+  };
+
+  console.log('Data dikirim ke server:', dataToSend);
+
+  Inertia.post('/airdrop', dataToSend, {
+    onSuccess: (page) => {
+      alert('Airdrop berhasil disimpan!');
+      if (page.props.airdrops) {
+        setAirdrops(page.props.airdrops);
+      } else {
+        setName('');
+        setClaimRewardAt('');
+        setStartedAt('');
+        setType('daily');
+        setSchedules([]);
+      }
+    },
+    onError: (errors) => {
+      alert('Terjadi error saat menyimpan airdrop');
+      console.error(errors);
+    },
+  });
+}
+
 
   return (
     <div style={styles.container}>
