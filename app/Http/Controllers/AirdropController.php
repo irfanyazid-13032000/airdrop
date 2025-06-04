@@ -39,33 +39,42 @@ class AirdropController extends Controller
         ]);
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string',
-            'claim_reward_at' => 'required|date',
-            'started_at' => 'required|date',
-            'tasks' => 'array',
+  public function store(Request $request)
+{
+
+    $request->validate([
+        'name' => 'required|string',
+        'claim_reward_at' => 'required|date',
+        'started_at' => 'required|date',
+        'tasks' => 'required|array',
+        'tasks.*.type' => 'required|string|in:daily,weekly,monthly',
+        'tasks.*.description' => 'nullable|string',
+        'tasks.*.dates' => 'array',
+        'tasks.*.dates.*' => 'date',
+    ]);
+
+    $airdrop = Airdrop::create($request->only(['name', 'claim_reward_at', 'started_at']));
+
+    foreach ($request->tasks as $taskData) {
+        $task = $airdrop->tasks()->create([
+            'type' => $taskData['type'],
+            'description' => $taskData['description'] ?? null,
         ]);
 
-        $airdrop = Airdrop::create($request->only(['name', 'claim_reward_at', 'started_at']));
-
-        foreach ($request->tasks as $taskData) {
-            $task = $airdrop->tasks()->create([
-                'type' => $taskData['type'],
-                'description' => $taskData['description'],
-            ]);
-
-            // Hanya untuk weekly & monthly
-            if (in_array($task->type, ['weekly', 'monthly']) && isset($taskData['dates'])) {
-                foreach ($taskData['dates'] as $date) {
-                    $task->schedules()->create(['schedule_date' => $date]);
-                }
+        // Jika tipe weekly/monthly, buat jadwalnya
+        if (in_array($task->type, ['weekly', 'monthly']) && !empty($taskData['dates'])) {
+            foreach ($taskData['dates'] as $date) {
+                $task->schedules()->create(['schedule_date' => $date]);
             }
         }
-
-        return redirect()->route('airdrop.index');
     }
+
+   return Inertia::render('AirdropPage', [
+        'airdrops' => Airdrop::with('tasks.schedules')->get(),
+    ]);
+}
+
+
 
     public function checklist(Request $request, $taskId)
     {

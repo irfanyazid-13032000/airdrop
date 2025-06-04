@@ -1,149 +1,182 @@
 import React, { useState } from 'react';
+import { Inertia } from '@inertiajs/inertia';
 
 const styles = {
   container: {
-    maxWidth: '800px',
+    maxWidth: '700px',
     margin: '40px auto',
     padding: '20px',
     backgroundColor: '#f9f9f9',
     borderRadius: '10px',
-    fontFamily: 'Arial, sans-serif',
+    boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
+    fontFamily: 'sans-serif',
   },
   section: {
     marginBottom: '30px',
   },
   heading: {
-    fontSize: '24px',
-    fontWeight: 'bold',
+    fontSize: '26px',
     marginBottom: '20px',
-    color: '#333',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
-  taskItem: {
+  subHeading: {
+    fontSize: '20px',
+    marginBottom: '10px',
+    fontWeight: 'bold',
+  },
+  listItem: {
     backgroundColor: '#fff',
+    padding: '14px 18px',
     borderRadius: '8px',
-    padding: '15px',
-    marginBottom: '12px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-  },
-  taskText: {
-    fontSize: '16px',
-    color: '#333',
-  },
-  checkbox: {
-    width: '18px',
-    height: '18px',
+    marginBottom: '10px',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
   },
   formGroup: {
-    marginBottom: '16px',
+    marginBottom: '14px',
   },
   label: {
     display: 'block',
     marginBottom: '6px',
     fontWeight: '600',
-    color: '#444',
   },
   input: {
     width: '100%',
-    padding: '10px',
+    padding: '8px 10px',
+    borderRadius: '6px',
+    border: '1px solid #ccc',
+    fontSize: '16px',
+  },
+  select: {
+    width: '100%',
+    padding: '8px 10px',
     borderRadius: '6px',
     border: '1px solid #ccc',
     fontSize: '16px',
   },
   button: {
-    width: '100%',
-    padding: '12px',
-    backgroundColor: '#28a745',
-    color: '#fff',
+    padding: '10px 16px',
     border: 'none',
     borderRadius: '6px',
-    fontWeight: '600',
     fontSize: '16px',
+    fontWeight: '600',
     cursor: 'pointer',
+    backgroundColor: '#007bff',
+    color: '#fff',
+    marginRight: '10px',
+  },
+  removeBtn: {
+    backgroundColor: '#dc3545',
+    marginTop: '8px',
   },
 };
 
-export default function Home() {
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const [airdrops, setAirdrops] = useState([
-    {
-      id: 1,
-      name: 'Daily Task A',
-      type: 'daily',
-      started_at: '2025-06-01',
-      claim_reward_at: '2025-06-10',
-    },
-    {
-      id: 2,
-      name: 'Special Task B',
-      type: 'scheduled',
-      started_at: '2025-06-03',
-      claim_reward_at: '2025-06-03',
-    },
-  ]);
-  const [checklist, setChecklist] = useState({});
+export default function Home({ initialAirdrops = [] }) {
+  const [airdrops, setAirdrops] = useState(initialAirdrops);
   const [name, setName] = useState('');
   const [claimRewardAt, setClaimRewardAt] = useState('');
   const [startedAt, setStartedAt] = useState('');
+  const [type, setType] = useState('daily');
+  const [schedules, setSchedules] = useState([]);
 
+  const today = new Date().toISOString().split('T')[0];
   const todayTasks = airdrops.filter(
-    (item) =>
-      item.type === 'daily' ||
-      item.claim_reward_at === today
+    (d) => d.type === 'daily' || (d.schedules && d.schedules.includes(today))
   );
 
-  const handleCheck = (id) => {
-    setChecklist((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
+  function handleAddSchedule() {
+    setSchedules([...schedules, '']);
+  }
 
-  const handleSubmit = (e) => {
+  function handleRemoveSchedule(index) {
+    setSchedules(schedules.filter((_, i) => i !== index));
+  }
+
+  function handleScheduleChange(index, value) {
+    const updated = [...schedules];
+    updated[index] = value;
+    setSchedules(updated);
+  }
+
+  function validateForm() {
+    if (!name.trim()) {
+      alert('Nama airdrop wajib diisi');
+      return false;
+    }
+    if (!claimRewardAt) {
+      alert('Tanggal claim reward wajib diisi');
+      return false;
+    }
+    if (!startedAt) {
+      alert('Tanggal mulai wajib diisi');
+      return false;
+    }
+    if ((type === 'weekly' || type === 'monthly') && schedules.length === 0) {
+      alert('Jadwal garap harus diisi untuk tipe weekly atau monthly');
+      return false;
+    }
+    if ((type === 'weekly' || type === 'monthly') && schedules.some((d) => !d)) {
+      alert('Semua jadwal garap harus diisi');
+      return false;
+    }
+    return true;
+  }
+
+  function handleSubmit(e) {
     e.preventDefault();
-    const newAirdrop = {
-      id: airdrops.length + 1,
+    if (!validateForm()) return;
+
+    const dataToSend = {
       name,
-      type: 'daily',
-      started_at: startedAt,
       claim_reward_at: claimRewardAt,
+      started_at: startedAt,
+      type,
+      schedules: type === 'daily' ? [] : schedules,
     };
-    setAirdrops([...airdrops, newAirdrop]);
-    setName('');
-    setClaimRewardAt('');
-    setStartedAt('');
-  };
+
+      console.log('Data dikirim ke server:', dataToSend);
+
+
+    Inertia.post('/api/airdrop', dataToSend, {
+      onSuccess: (page) => {
+        alert('Airdrop berhasil disimpan!');
+        // Update state dengan data terbaru dari backend jika perlu
+        if (page.props.airdrops) {
+          setAirdrops(page.props.airdrops);
+        } else {
+          // Kalau backend tidak kirim ulang, reset form manual
+          setName('');
+          setClaimRewardAt('');
+          setStartedAt('');
+          setType('daily');
+          setSchedules([]);
+        }
+      },
+      onError: (errors) => {
+        alert('Terjadi error saat menyimpan airdrop');
+      },
+    });
+  }
 
   return (
     <div style={styles.container}>
-      <div style={styles.section}>
-        <h2 style={styles.heading}>📅 Task Hari Ini - {today}</h2>
+      <h1 style={styles.heading}>Airdrop Management</h1>
+
+      <section style={styles.section}>
+        <h2 style={styles.subHeading}>To-Do Hari Ini ({today})</h2>
         {todayTasks.length === 0 ? (
-          <p>Tidak ada task untuk hari ini.</p>
+          <p>Tidak ada airdrop yang perlu dikerjakan hari ini.</p>
         ) : (
-          todayTasks.map((task) => (
-            <div key={task.id} style={styles.taskItem}>
-              <div>
-                <div style={styles.taskText}>{task.name}</div>
-                <small>
-                  Mulai: {task.started_at} | Klaim: {task.claim_reward_at}
-                </small>
-              </div>
-              <input
-                type="checkbox"
-                style={styles.checkbox}
-                checked={checklist[task.id] || false}
-                onChange={() => handleCheck(task.id)}
-              />
+          todayTasks.map(({ id, name, type }) => (
+            <div key={id} style={styles.listItem}>
+              <strong>{name}</strong> <span>({type})</span>
             </div>
           ))
         )}
-      </div>
+      </section>
 
-      <div style={styles.section}>
-        <h2 style={styles.heading}>➕ Tambah Airdrop Baru</h2>
+      <section style={styles.section}>
+        <h2 style={styles.subHeading}>Tambah Airdrop Baru</h2>
         <form onSubmit={handleSubmit}>
           <div style={styles.formGroup}>
             <label style={styles.label}>Nama Airdrop</label>
@@ -154,6 +187,18 @@ export default function Home() {
               required
             />
           </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Tanggal Claim Reward</label>
+            <input
+              type="date"
+              style={styles.input}
+              value={claimRewardAt}
+              onChange={(e) => setClaimRewardAt(e.target.value)}
+              required
+            />
+          </div>
+
           <div style={styles.formGroup}>
             <label style={styles.label}>Tanggal Mulai</label>
             <input
@@ -164,21 +209,56 @@ export default function Home() {
               required
             />
           </div>
+
           <div style={styles.formGroup}>
-            <label style={styles.label}>Tanggal Klaim Hadiah</label>
-            <input
-              type="date"
-              style={styles.input}
-              value={claimRewardAt}
-              onChange={(e) => setClaimRewardAt(e.target.value)}
-              required
-            />
+            <label style={styles.label}>Jenis Airdrop</label>
+            <select
+              style={styles.select}
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+            >
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
           </div>
+
+          {(type === 'weekly' || type === 'monthly') && (
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Jadwal Garap</label>
+              {schedules.map((date, index) => (
+                <div key={index} style={{ marginBottom: '10px' }}>
+                  <input
+                    type="date"
+                    value={date}
+                    style={styles.input}
+                    onChange={(e) => handleScheduleChange(index, e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    style={{ ...styles.button, ...styles.removeBtn }}
+                    onClick={() => handleRemoveSchedule(index)}
+                  >
+                    Hapus
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                style={styles.button}
+                onClick={handleAddSchedule}
+              >
+                +
+              </button>
+            </div>
+          )}
+
           <button type="submit" style={styles.button}>
             Simpan Airdrop
           </button>
         </form>
-      </div>
+      </section>
     </div>
   );
 }
