@@ -40,7 +40,7 @@ class AirdropController extends Controller
     }
 
   public function store(Request $request)
-{z
+{
     $request->validate([
         'name' => 'required|string',
         'claim_reward_at' => 'required|date',
