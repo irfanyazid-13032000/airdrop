@@ -50,10 +50,12 @@ class AirdropController extends Controller
         'started_at' => 'required|date',
         'tasks' => 'required|array',
         'tasks.*.type' => 'required|string|in:daily,weekly,monthly',
-        'tasks.*.description' => 'nullable|string',
+        'tasks.*.description' => 'required|string',
         'tasks.*.dates' => 'array',
         'tasks.*.dates.*' => 'date',
     ]);
+
+    
 
     $airdrop = Airdrop::create($request->only(['name', 'claim_reward_at', 'started_at']));
 
