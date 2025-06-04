@@ -9,7 +9,7 @@ export default function Home({ initialAirdrops = [] }) {
   const [startedAt, setStartedAt] = useState('');
   const [tasks, setTasks] = useState([{ type: 'daily', description: '', dates: [] }]);
 
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
 
   // Toggle dark mode class on body
   useEffect(() => {
@@ -292,17 +292,17 @@ export default function Home({ initialAirdrops = [] }) {
         <h1 style={{ color: '#1877f2', textAlign: 'center' }}>Airdrop Management</h1>
 
         <section>
-          <h2>To-Do Hari Ini ({today})</h2>
-          {todayTasks.length === 0 ? (
-            <p>Tidak ada airdrop yang perlu dikerjakan hari ini.</p>
-          ) : (
-            todayTasks.map(({ id, name, type }) => (
-              <div key={id} className="task-card">
-                <strong>{name}</strong> <small>({type})</small>
-              </div>
-            ))
-          )}
-        </section>
+        {todayTasks.length === 0 ? (
+          <p>Tidak ada airdrop yang perlu dikerjakan hari ini.</p>
+        ) : (
+          todayTasks.map(({ task_id, airdrop_name, description, type }) => (
+            <div key={task_id} className="task-card">
+              <strong>{airdrop_name}</strong> <small>({type})</small>
+              <p>{description}</p>
+            </div>
+          ))
+        )}
+      </section>
 
         <section style={{ marginTop: 40 }}>
           <h2>Tambah Airdrop Baru</h2>

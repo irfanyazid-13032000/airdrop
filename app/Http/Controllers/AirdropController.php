@@ -9,8 +9,6 @@ use App\Models\TaskChecklist;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Redirect;
-
 
 class AirdropController extends Controller
 {
@@ -42,20 +40,17 @@ class AirdropController extends Controller
     }
 
   public function store(Request $request)
-{
-
+{z
     $request->validate([
         'name' => 'required|string',
         'claim_reward_at' => 'required|date',
         'started_at' => 'required|date',
         'tasks' => 'required|array',
         'tasks.*.type' => 'required|string|in:daily,weekly,monthly',
-        'tasks.*.description' => 'required|string',
+        'tasks.*.description' => 'nullable|string',
         'tasks.*.dates' => 'array',
         'tasks.*.dates.*' => 'date',
     ]);
-
-    
 
     $airdrop = Airdrop::create($request->only(['name', 'claim_reward_at', 'started_at']));
 
@@ -73,8 +68,10 @@ class AirdropController extends Controller
         }
     }
 
-       return Redirect::back()->with('success', 'Airdrop berhasil disimpan!');
-
+    return response()->json([
+        'success' => true,
+        'airdrop' => $airdrop->load('tasks.schedules'),
+    ]);
 }
 
 
