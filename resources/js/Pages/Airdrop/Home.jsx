@@ -9,7 +9,7 @@ export default function Home({ initialAirdrops = [] }) {
   const [startedAt, setStartedAt] = useState('');
   const [tasks, setTasks] = useState([{ type: 'daily', description: '', dates: [] }]);
 
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
 
   // Toggle dark mode class on body
   useEffect(() => {
@@ -310,6 +310,7 @@ export default function Home({ initialAirdrops = [] }) {
             <div style={{ marginBottom: 15 }}>
               <label>Nama Airdrop</label>
               <input
+                style={{ width: '707px' }}
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -320,6 +321,7 @@ export default function Home({ initialAirdrops = [] }) {
             <div style={{ marginBottom: 15 }}>
               <label>Tanggal Claim Reward</label>
               <input
+               style={{ width: '707px' }}
                 type="date"
                 value={claimRewardAt}
                 onChange={(e) => setClaimRewardAt(e.target.value)}
@@ -330,6 +332,7 @@ export default function Home({ initialAirdrops = [] }) {
             <div style={{ marginBottom: 15 }}>
               <label>Tanggal Mulai</label>
               <input
+               style={{ width: '707px' }}
                 type="date"
                 value={startedAt}
                 onChange={(e) => setStartedAt(e.target.value)}
@@ -358,6 +361,7 @@ export default function Home({ initialAirdrops = [] }) {
                 <div style={{ marginBottom: 8 }}>
                   <label>Description</label>
                   <textarea
+                    style={{width: '670px'}}
                     value={task.description}
                     onChange={(e) => updateTask(index, 'description', e.target.value)}
                     required
