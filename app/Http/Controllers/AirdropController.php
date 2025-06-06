@@ -14,31 +14,73 @@ class AirdropController extends Controller
 {
     public function index()
     {
-        $today = Carbon::today();
+         $today = Carbon::today()->toDateString(); // format: '2025-06-04'
 
-        // Ambil semua task yang aktif hari ini
-        $dailyTasks = Task::with('airdrop')
-            ->where('type', 'daily')
-            ->get();
+    $tasks = Task::with(['airdrop', 'checklists' => function ($q) use ($today) {
+        $q->where('checklist_date', $today);
+    }])
+    ->where(function ($query) use ($today) {
+        $query->where('type', 'daily')
+            ->orWhere(function ($q) use ($today) {
+                $q->whereIn('type', ['weekly', 'monthly'])
+                  ->whereHas('checklists', function ($sub) use ($today) {
+                      $sub->where('checklist_date', $today);
+                  });
+            });
+    })
+    ->get()
+    ->map(function ($task) use ($today) {
+        return [
+            'id' => $task->id,
+            'description' => $task->description,
+            'type' => $task->type,
+            'checked' => $task->checklists->first()?->is_checked ?? false,
+            'airdrop' => [
+                'id' => $task->airdrop->id,
+                'name' => $task->airdrop->name,
+            ],
+        ];
+    });
 
-        $scheduledTasks = Task::with('airdrop')
-            ->whereHas('schedules', function ($q) use ($today) {
-                $q->where('schedule_date', $today);
-            })->get();
-
-        $tasks = $dailyTasks->merge($scheduledTasks)->map(function ($task) use ($today) {
-            $task->checked = $task->checklists()
-                ->where('checklist_date', $today)
-                ->value('is_checked') ?? false;
-            return $task;
-        });
-
-        return Inertia::render('Airdrop/Home', [
-            'tasks' => $tasks,
-            'today' => $today->toDateString(),
-        ]);
+    return Inertia::render('Airdrop/Home', [
+        'tugasHariIni' => $tasks,
+        'today' => $today,
+    ]);
     }
 
+    public function tolol()
+    {
+        $today = Carbon::today()->toDateString(); // format: '2025-06-04'
+
+    $tasks = Task::with(['airdrop', 'checklists' => function ($q) use ($today) {
+        $q->where('checklist_date', $today);
+    }])
+    ->where(function ($query) use ($today) {
+        $query->where('type', 'daily')
+            ->orWhere(function ($q) use ($today) {
+                $q->whereIn('type', ['weekly', 'monthly'])
+                  ->whereHas('checklists', function ($sub) use ($today) {
+                      $sub->where('checklist_date', $today);
+                  });
+            });
+    })
+    ->get()
+    ->map(function ($task) use ($today) {
+        return [
+            'id' => $task->id,
+            'description' => $task->description,
+            'type' => $task->type,
+            'checked' => $task->checklists->first()?->is_checked ?? false,
+            'airdrop' => [
+                'id' => $task->airdrop->id,
+                'name' => $task->airdrop->name,
+            ],
+        ];
+    });
+
+        return $tasks;
+    }
+    
   public function store(Request $request)
 {
     $request->validate([
