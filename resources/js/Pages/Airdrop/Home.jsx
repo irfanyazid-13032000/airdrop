@@ -281,6 +281,57 @@ export default function Home({ initialAirdrops = [],tugasHariIni = [] }) {
         }
         .toggle-darkmode:hover {
           background-color: #165ec9;
+
+          .task-table-section {
+  margin-top: 30px;
+}
+
+
+
+
+.task-table {
+background-color: red;
+}
+
+.task-table th, .task-table td {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.task-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+  color: #333;
+}
+
+.dark-mode .task-table th {
+  background-color: #3a3b3c;
+  color: #e4e6eb;
+}
+
+.task-table td {
+  background-color: #fff;
+}
+
+.dark-mode .task-table td {
+  background-color: #18191a;
+}
+
+.check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.check-done {
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+.check-pending {
+  color: #e53935;
+  font-weight: bold;
+}
+
         }
       `}</style>
 
@@ -290,31 +341,48 @@ export default function Home({ initialAirdrops = [],tugasHariIni = [] }) {
 
       <div className="container" style={{ fontWeight: '600' }}>
         <h1 style={{ color: '#1877f2', textAlign: 'center' }}>Airdrop Management</h1>
-<section>
+<section className="task-table-section">
   <h2>To-Do Hari Ini ({today})</h2>
+
   {tugasHariIni.length === 0 ? (
-    <p>Tidak ada airdrop yang perlu dikerjakan hari ini.</p>
+    <p className="no-task">Tidak ada airdrop yang perlu dikerjakan hari ini.</p>
   ) : (
-    tugasHariIni.map(({ id, description, type, checked, airdrop }) => (
-      <div key={id} className="task-card bg-blue-900 text-white p-4 rounded-xl shadow mb-4">
-        <div className="flex justify-between items-center">
-          <div>
-            <strong className="text-lg">{airdrop.name}</strong>
-            <p className="text-sm italic text-blue-300">{description}</p>
-            <small className="text-blue-400">({type})</small>
-          </div>
-          <div>
-            {checked ? (
-              <span className="text-green-400 font-bold">✅ Selesai</span>
-            ) : (
-              <span className="text-yellow-400 font-bold">⏳ Belum</span>
-            )}
-          </div>
-        </div>
-      </div>
-    ))
+    <div className="table-container" style={{ width: '100%' }}>
+      <table className="task-table" style={{ width: '100%' }}>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Disuruh</th>
+            <th>Tipe</th>
+            <th>Checklist</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tugasHariIni.map(({ id, description, type, checked, airdrop }) => (
+            <tr key={id}>
+              <td style={{ textAlign: 'center' }}>{airdrop.name}</td>
+              <td style={{ textAlign: 'center' }}>{description}</td>
+              <td style={{ textAlign: 'center' }}>{type}</td>
+              <td>
+                <label className="check-label" style={{ paddingTop: '5px',textAlign: 'center' }}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => handleToggle(id, checked)}
+                  />
+                  <span className={checked ? "check-done" : "check-pending"} style={{ paddingTop: '5px',textAlign: 'center' }}>
+                    {checked ? "Selesai" : "Belum"}
+                  </span>
+                </label>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )}
 </section>
+
 
 
         <section style={{ marginTop: 40 }}>
